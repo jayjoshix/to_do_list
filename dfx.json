@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "to_do_list_backend": {
+      "candid": "src/to_do_list_backend/to_do_list_backend.did",
+      "package": "to_do_list_backend",
+      "type": "rust"
+    },
+    "to_do_list_frontend": {
+      "dependencies": [
+        "to_do_list_backend"
+      ],
+      "source": [
+        "src/to_do_list_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "to_do_list_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
