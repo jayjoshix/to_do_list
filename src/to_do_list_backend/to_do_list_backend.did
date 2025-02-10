@@ -3,16 +3,22 @@ type Task = record {
     description : text;
     completed : bool;
     important : bool;
-    due_date : opt nat64;
+    date_added : text;
+    importance_level : text;
     owner : principal;
 };
 
 service : {
-    add_task : (description : text, due_date : opt nat64, important : bool) -> (Task);
-    toggle_task_completion : (task_id : nat64) -> (bool);
-    toggle_task_importance : (task_id : nat64) -> (bool);
-    get_tasks : () -> (vec Task) query;
-    get_important_tasks : () -> (vec Task) query;
-    get_completed_tasks : () -> (vec Task) query;
-    delete_task : (task_id : nat64) -> (bool);
+    "add_task" : (
+        description: text,  // Task Description
+        date: text,         // Due Date (YYYY-MM-DD)
+        importance: bool    // Is Important?
+    ) -> (Task);
+    "get_task" : (nat64) -> (opt Task) query;
+    "toggle_task_completion" : (nat64) -> (bool);
+    "toggle_task_importance" : (nat64) -> (bool);
+    "get_tasks" : () -> (vec Task) query;
+    "get_important_tasks" : () -> (vec Task) query;
+    "get_completed_tasks" : () -> (vec Task) query;
+    "delete_task" : (nat64) -> (bool);
 }

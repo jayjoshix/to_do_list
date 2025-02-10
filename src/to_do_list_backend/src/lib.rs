@@ -9,7 +9,8 @@ pub struct Task {
     description: String,
     completed: bool,
     important: bool,
-    due_date: Option<u64>,
+    date_added: String,
+    importance_level: String,
     owner: candid::Principal,
 }
 
@@ -24,8 +25,16 @@ fn init() {
     TASKS.with(|tasks| tasks.borrow_mut().clear());
 }
 
+/// Add a new task
+/// @param {text} description - Task Description
+/// @param {text} date - Due Date (YYYY-MM-DD)
+/// @param {bool} importance - Is Important?
 #[ic_cdk::update]
-async fn add_task(description: String, due_date: Option<u64>, important: bool) -> Task {
+async fn add_task(
+    description: String,  // Task Description
+    date: String,        // Due Date (YYYY-MM-DD)
+    importance: bool     // Is Important?
+) -> Task {
     let caller = caller();
     
     let task_id = COUNTER.with(|counter| {
@@ -34,12 +43,19 @@ async fn add_task(description: String, due_date: Option<u64>, important: bool) -
         current
     });
 
+    let importance_level = if importance {
+        "High Priority".to_string()
+    } else {
+        "Normal Priority".to_string()
+    };
+
     let task = Task {
         id: task_id,
         description,
         completed: false,
-        important,
-        due_date,
+        important: importance,
+        date_added: date,
+        importance_level,
         owner: caller,
     };
 
@@ -52,6 +68,26 @@ async fn add_task(description: String, due_date: Option<u64>, important: bool) -
     task
 }
 
+/// Get a specific task by ID
+/// @param {nat64} task_id - Task ID
+#[ic_cdk::query]
+fn get_task(task_id: u64) -> Option<Task> {
+    let caller = caller();
+    TASKS.with(|tasks| {
+        tasks
+            .borrow()
+            .get(&caller)
+            .and_then(|user_tasks| {
+                user_tasks
+                    .iter()
+                    .find(|task| task.id == task_id)
+                    .cloned()
+            })
+    })
+}
+
+/// Toggle task completion status
+/// @param {nat64} task_id - Task ID
 #[ic_cdk::update]
 fn toggle_task_completion(task_id: u64) -> bool {
     let caller = caller();
@@ -69,6 +105,8 @@ fn toggle_task_completion(task_id: u64) -> bool {
     success
 }
 
+/// Toggle task importance
+/// @param {nat64} task_id - Task ID
 #[ic_cdk::update]
 fn toggle_task_importance(task_id: u64) -> bool {
     let caller = caller();
@@ -78,6 +116,11 @@ fn toggle_task_importance(task_id: u64) -> bool {
         if let Some(user_tasks) = tasks.borrow_mut().get_mut(&caller) {
             if let Some(task) = user_tasks.iter_mut().find(|t| t.id == task_id) {
                 task.important = !task.important;
+                task.importance_level = if task.important {
+                    "High Priority".to_string()
+                } else {
+                    "Normal Priority".to_string()
+                };
                 success = true;
             }
         }
@@ -86,6 +129,7 @@ fn toggle_task_importance(task_id: u64) -> bool {
     success
 }
 
+/// Get all tasks for the current user
 #[ic_cdk::query]
 fn get_tasks() -> Vec<Task> {
     let caller = caller();
@@ -98,6 +142,7 @@ fn get_tasks() -> Vec<Task> {
     })
 }
 
+/// Get all important tasks
 #[ic_cdk::query]
 fn get_important_tasks() -> Vec<Task> {
     let caller = caller();
@@ -116,6 +161,7 @@ fn get_important_tasks() -> Vec<Task> {
     })
 }
 
+/// Get all completed tasks
 #[ic_cdk::query]
 fn get_completed_tasks() -> Vec<Task> {
     let caller = caller();
@@ -134,6 +180,8 @@ fn get_completed_tasks() -> Vec<Task> {
     })
 }
 
+/// Delete a task
+/// @param {nat64} task_id - Task ID
 #[ic_cdk::update]
 fn delete_task(task_id: u64) -> bool {
     let caller = caller();
