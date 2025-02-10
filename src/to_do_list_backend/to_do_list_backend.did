@@ -1,3 +1,18 @@
+type Task = record {
+    id : nat64;
+    description : text;
+    completed : bool;
+    important : bool;
+    due_date : opt nat64;
+    owner : principal;
+};
+
 service : {
-    "greet": (text) -> (text) query;
+    add_task : (description : text, due_date : opt nat64, important : bool) -> (Task);
+    toggle_task_completion : (task_id : nat64) -> (bool);
+    toggle_task_importance : (task_id : nat64) -> (bool);
+    get_tasks : () -> (vec Task) query;
+    get_important_tasks : () -> (vec Task) query;
+    get_completed_tasks : () -> (vec Task) query;
+    delete_task : (task_id : nat64) -> (bool);
 }
